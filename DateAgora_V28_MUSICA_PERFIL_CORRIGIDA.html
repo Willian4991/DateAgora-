@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<title>DateAgora ❤️ — V28 Música no Perfil</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#050506;--panel:#101014;--panel2:#0b0b0e;--line:#25252c;--text:#fff;--muted:#9b9ba5;--red:#ff3158;--green:#35d07f;--gold:#f4c95d}
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+html{background:var(--bg);scroll-behavior:smooth}body{margin:0;background:linear-gradient(180deg,#030304,#0a0a0d 55%,#030304);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:30;background:#030304ee;backdrop-filter:blur(18px);border-bottom:1px solid #1d1d23;padding:12px 16px;text-align:center}
+.brand{display:flex;align-items:center;justify-content:center;gap:9px}.brand b{font-size:22px}.heartLogo{color:var(--red);font-size:25px}header p{margin:3px 0 0;color:var(--muted);font-size:12px}
+main{width:100%;max-width:780px;margin:auto;padding:15px 13px 105px}.card{background:linear-gradient(180deg,#121216,#0a0a0d);border:1px solid var(--line);border-radius:21px;padding:17px;margin-bottom:14px;box-shadow:0 12px 35px #0007}
+h1,h2,h3,p{margin-top:0}h2{font-size:20px;margin-bottom:7px}.small{font-size:13px;color:var(--muted);line-height:1.45}
+input,textarea,select{width:100%;padding:14px;border-radius:13px;border:1px solid #303039;background:#070709;color:#fff;margin:5px 0;outline:none;font-size:16px}
+textarea{min-height:90px;resize:vertical}button{width:100%;padding:13px 14px;border-radius:13px;border:1px solid #303039;background:#18181d;color:#fff;font-weight:800;margin:5px 0;cursor:pointer}
+button.primary,.heart{background:var(--red);border-color:var(--red)}button.green{background:#145d3b;border-color:#1b8050}button.gold{background:#58470f;border-color:#876f19}
+button.secondary{background:#09090b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
+.status{text-align:center;min-height:20px;margin-top:8px;font-weight:700}.ok{color:var(--green)}.err{color:#ff718d}
+#app,#reset{display:none}.hero{background:radial-gradient(circle at 90% 0,#ff315824,transparent 42%),#101014}
+.badge{display:inline-block;padding:5px 9px;border-radius:99px;background:#1b1b20;color:#ddd;font-size:11px;margin:2px}
+.date,.item{background:#0b0b0e;border:1px solid #27272e;border-radius:16px;padding:14px;margin-top:9px}.date h3{font-size:17px;margin-bottom:6px}.date p{margin:6px 0;color:#ddd}
+.storyRail{display:flex;gap:12px;overflow-x:auto;padding:3px 1px 8px}.story{min-width:82px;text-align:center}.story img{width:68px;height:68px;border-radius:50%;object-fit:cover;border:2px solid var(--red)}.story .fallback{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#1c1c21;border:2px solid var(--red);font-size:25px;margin:auto}
+.avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #333}.profileHead{display:flex;gap:13px;align-items:center}.preview{max-width:150px;max-height:150px;border-radius:16px;display:none;margin:8px auto;object-fit:cover}
+.chat{max-height:330px;overflow:auto;border:1px solid #292930;border-radius:14px;padding:9px;background:#070709}.chatComposer{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}.chatComposer input{flex:1 1 auto;min-width:0;width:auto}.chatComposer button{flex:0 0 auto;width:auto;min-width:88px}.msg{padding:9px 11px;border-radius:14px;background:#17171c;margin:6px 0}.msg.mine{background:#24242a}.msg small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(780px,100%);z-index:40;display:none;grid-template-columns:repeat(5,1fr);gap:3px;padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:#050506f5;backdrop-filter:blur(18px);border-top:1px solid #25252b}.nav button{background:transparent;border:0;margin:0;padding:7px 2px;color:#999;font-size:10px}.nav button b{display:block;font-size:18px;color:#fff;margin-bottom:2px}.nav .active{color:#fff}.nav .active b{color:var(--red)}
+.hidden{display:none!important}
+.storyModal{position:fixed;inset:0;z-index:100;background:#000e;display:grid;place-items:center;padding:18px}
+.storyViewer{position:relative;width:min(560px,100%);max-height:92vh;display:flex;flex-direction:column;align-items:center;gap:10px}
+.storyPhotoWrap{position:relative;width:100%;display:flex;justify-content:center}
+.storyViewer img{display:block;max-width:100%;max-height:78vh;width:auto;height:auto;object-fit:contain;border-radius:18px;background:#050506}
+.storyHeader{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center;gap:9px;padding:7px 14px 7px 7px;border-radius:999px;background:#000b;color:#fff;font-weight:900;font-size:15px;text-align:center;max-width:82%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid #ffffff2a;backdrop-filter:blur(8px)}
+.storyHeader img{width:38px!important;height:38px!important;min-width:38px;max-width:38px!important;border-radius:50%;object-fit:cover;border:2px solid #fff;background:#222}
+.storyHeader .storyInitial{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#333;color:#fff;border:2px solid #fff;font-size:16px}
+.storyHeader span{overflow:hidden;text-overflow:ellipsis}
+.storyClose{position:absolute;right:8px;top:8px;z-index:4;width:44px;height:44px;padding:0;border-radius:50%;background:#000b;border:1px solid #444;font-size:18px}
+.storyCaption{width:100%;padding:10px 14px;border-radius:13px;background:#101014eF;color:#fff;text-align:center;white-space:pre-wrap}
+.sectionHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.sectionHead button{width:auto;padding:9px 12px;margin:0}
+@media(max-width:480px){main{padding:12px 11px 100px}.card{padding:15px;border-radius:18px}}
+
+.createLauncher{text-align:center}.createLauncher .primary{max-width:420px;margin:10px auto 0}.modal{display:none;position:fixed;inset:0;z-index:100;background:#000b;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.modalBox{width:min(620px,100%);max-height:90vh;overflow:auto;background:#0d0d10;border:1px solid #2b2b32;border-radius:22px;padding:18px;box-shadow:0 20px 70px #000}.closeModal{width:auto!important;min-width:80px!important}.musicHighlight{margin:12px 0 16px;padding:15px;border:1px solid #2c2c33;border-radius:18px;background:linear-gradient(180deg,#151519,#09090b)}.musicHighlightTitle{font-weight:800;font-size:18px;margin:4px 0 8px}.musicFeatured{margin:0;border-color:#34343b}.musicFeatured:empty{display:block;min-height:42px}.chatComposer{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;width:100%!important}.chatComposer input{flex:1 1 0!important;min-width:0!important;width:0!important;box-sizing:border-box!important}.chatComposer button{flex:0 0 96px!important;width:96px!important;min-width:96px!important;box-sizing:border-box!important}
+</style>
+
+<style>
+#musicPlayerApp{display:none;margin-top:12px;border:1px solid #374151;border-radius:16px;padding:12px;background:#0b0b0f}
+#musicPlayerApp iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000}
+#musicPlayerApp .music-player-title{font-weight:700;margin-bottom:8px}
+</style>
+
+
+<style id="dateagora-v24-visual">
+/* V24: somente acabamento visual. Nenhuma função/handler existente foi alterado. */
+body{background:radial-gradient(circle at 50% -10%,#17171c 0,#08080a 32%,#030304 78%);}
+header{box-shadow:0 8px 28px #0008;}
+main{max-width:820px;padding-left:14px;padding-right:14px;}
+#app>.card{border-color:#222229;background:linear-gradient(145deg,#121216,#09090c);box-shadow:0 16px 42px #0009;transition:transform .18s ease,border-color .18s ease;}
+#app>.card h2{letter-spacing:-.25px;}
+.hero{padding:24px 20px!important;background:radial-gradient(circle at 90% 0,#ff31581c,transparent 34%),linear-gradient(145deg,#141419,#09090c)!important;border-color:#2a2a31!important;}
+.hero h2{font-size:clamp(25px,6vw,34px)!important;line-height:1.08;margin:8px 0!important;}
+.badge{display:inline-flex!important;align-items:center;gap:7px;padding:6px 10px!important;border:1px solid #34343b;border-radius:999px;background:#0a0a0d;color:#bdbdc6!important;font-size:10px!important;letter-spacing:1.8px!important;}
+.sectionHead{align-items:center!important;margin-bottom:10px;}
+.sectionHead h2{margin-bottom:3px;}
+.sectionHead>button{width:auto!important;min-width:44px!important;margin:0!important;padding:10px 12px!important;border-radius:12px!important;background:#17171b!important;}
+#storiesSection{overflow:hidden;}
+#storiesSection .storyRail{padding-bottom:3px;}
+#encontros .row{display:grid!important;grid-template-columns:1fr auto!important;gap:8px!important;align-items:center;}
+#encontros .row input,#encontros .row select{min-width:0;}
+#encontros .row button{width:auto!important;margin:0!important;white-space:nowrap;}
+#encontrosLista .date,.date{border-color:#28282f!important;background:linear-gradient(145deg,#111116,#09090c)!important;}
+.primary{background:linear-gradient(135deg,#ff3158,#d9153d)!important;border-color:#ff3158!important;box-shadow:0 8px 20px #ff31581f;}
+.heart{background:linear-gradient(135deg,#ff3158,#d9153d)!important;}
+#interactionMenu{background:linear-gradient(145deg,#141419,#09090c)!important;border-color:#2c2c34!important;}
+#interactionMenu>div{margin-top:12px!important;}
+#interactionMenu button{flex:1 1 190px!important;margin:0!important;}
+#pontos .item,#premium .item,#parceiros .item{background:#0a0a0d;border:1px solid #25252c;border-radius:16px;padding:13px;}
+#perfil{background:linear-gradient(145deg,#121217,#08080b)!important;}
+#profileHead{margin-bottom:12px;}
+#seguranca{border-color:#27272e!important;}
+#premium{border-color:#302a1b!important;}
+#premium .gold{background:linear-gradient(135deg,#f4c95d,#b98a20)!important;color:#090909!important;border-color:#f4c95d!important;}
+#btnSair{margin-top:2px!important;}
+.nav{max-width:820px!important;padding:8px 10px calc(8px + env(safe-area-inset-bottom))!important;border-color:#292930!important;box-shadow:0 -12px 35px #000a;}
+.nav button{min-height:52px!important;border-radius:13px!important;color:#8f8f98!important;transition:background .15s ease,color .15s ease;}
+.nav button:hover{background:#15151a!important;}
+.nav button[data-target="interesses"]{color:#ff3158!important;}
+.nav b{font-size:20px!important;line-height:1.1!important;}
+@media(max-width:600px){#app>.card{padding:16px!important;border-radius:20px!important;}#encontros .row{grid-template-columns:1fr!important;}#encontros .row button{width:100%!important;}#interactionMenu button{flex-basis:100%!important;}main{padding-bottom:105px!important;}}
+@media(prefers-reduced-motion:reduce){#app>.card,.nav button{transition:none!important;}}
+
+/* V26 — tela inicial mais limpa, sofisticada e orientada ao uso diário. */
+#interactionMenu,#centralAcesso,#modoTeste{display:none!important;}
+#inicio{padding:24px 20px 21px!important;margin-bottom:12px!important;}
+#inicio .badge{margin-bottom:5px;}
+#inicio h2{font-size:clamp(27px,7vw,38px)!important;letter-spacing:-.7px!important;margin:6px 0 8px!important;}
+#inicio .small{max-width:520px;font-size:14px!important;color:#b1b1ba!important;}
+#miniPerfil{margin-top:16px;}
+#storiesSection{padding-top:15px!important;padding-bottom:15px!important;}
+#storiesSection .sectionHead p{margin-bottom:0;}
+#storiesSection .sectionHead>button{font-size:0!important;width:42px!important;height:42px!important;padding:0!important;position:relative;}
+#storiesSection .sectionHead>button::after{content:'↻';font-size:18px;}
+.storyPublishToggle{margin:6px 0 0!important;background:#111116!important;border-color:#303038!important;color:#fff!important;font-size:14px!important;}
+.storyPublishBox{margin-top:8px;padding:10px;border:1px solid #292930;border-radius:16px;background:#09090c;}
+.storyActions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+.storyActions button{width:100%!important;margin:0!important;}
+#encontros{padding-top:17px!important;}
+#encontros .sectionHead h2{font-size:22px!important;}
+#encontros .row{margin-top:10px;}
+#createDateModal .modalBox{border-color:#35353e!important;}
+.createLauncher{padding:16px!important;text-align:left!important;background:linear-gradient(145deg,#121217,#09090c)!important;}
+.createLauncher h2{font-size:18px!important;margin-bottom:5px!important;}
+.createLauncher .small{margin-bottom:10px;}
+.createLauncher .primary{max-width:none!important;margin:0!important;}
+#interesses,#conversas,#pontos,#seguranca,#parceiros,#premium{scroll-margin-top:82px;}
+#perfil{display:none;position:fixed;inset:0;z-index:120;margin:0;padding:18px 18px 100px!important;background:#000c!important;border:0!important;border-radius:0!important;overflow:auto;box-sizing:border-box;}
+#perfil.open{display:block;}
+#perfil .profileEditorInner{max-width:620px;margin:0 auto;background:linear-gradient(145deg,#121217,#08080b);border:1px solid #2c2c33;border-radius:22px;padding:18px;box-sizing:border-box;}
+#perfil .profileClose{width:auto!important;min-width:90px!important;}
+
+.nav{display:grid!important;}
+@media(max-width:600px){#inicio{padding:22px 17px 19px!important;}#inicio h2{font-size:28px!important;}#storiesSection .storyRail{gap:10px;}#storiesSection .story{min-width:74px;}#storiesSection .story img,#storiesSection .story .fallback{width:62px;height:62px;}#encontros .sectionHead>button{min-width:42px!important;} }
+</style>
+</head>
+<body><div id="versionMarker" style="display:none">DateAgora V12 — segurança e chat</div>
+<header><div class="brand"><span class="heartLogo">♥</span><b>DateAgora</b></div><p>Encontros que acontecem hoje.</p></header>
+<main>
+<section class="card" id="login">
+<h2>Entrar no DateAgora</h2>
+<p class="small">Entre para encontrar encontros reais, criar seu perfil e conversar com seus matches.</p>
+<input autocomplete="email" id="email" placeholder="Seu e-mail" type="email"/>
+<input autocomplete="current-password" id="senha" placeholder="Sua senha" type="password"/>
+<button class="primary" id="btnEntrar">Entrar</button>
+<button class="secondary" id="btnCadastro">Criar minha conta</button>
+<button class="secondary" id="btnReset">Esqueci minha senha</button>
+<div class="status" id="status"></div>
+</section>
+<section class="card" id="reset">
+<h2>🔐 Nova senha</h2>
+<input autocomplete="new-password" id="novaSenha" placeholder="Nova senha (mínimo 6 caracteres)" type="password"/>
+<input autocomplete="new-password" id="confirmaSenha" placeholder="Confirmar nova senha" type="password"/>
+<button class="primary" id="btnNovaSenha">Salvar nova senha</button>
+<div class="status" id="resetStatus"></div>
+</section>
+<section id="app">
+<div class="card hero" id="inicio">
+<div class="badge">DATEAGORA</div>
+<h2>O que vai acontecer hoje? ❤️</h2>
+<p class="small">Encontre pessoas que também querem sair, conversar e viver algo real.</p>
+<div id="miniPerfil"></div>
+</div>
+<div class="card" id="storiesSection">
+<div class="sectionHead"><div><h2>✨ Stories</h2><p class="small">Fotos que ficam no ar por 24 horas.</p></div><button id="btnStories">Atualizar</button></div>
+<div class="storyRail" id="storyRail"></div>
+<button class="storyPublishToggle" id="btnToggleStoryPublish" type="button">📸 Publicar um Story</button>
+<div class="storyPublishBox hidden" id="storyPublishBox">
+<input accept="image/*" id="storyFile" type="file"/>
+<img alt="Prévia do story" class="preview" id="storyPreview"/>
+<input id="storyCaption" maxlength="180" placeholder="Legenda (opcional)"/>
+<div class="row storyActions"><button class="primary" id="btnPublicarStory" type="button">Publicar Story</button><button class="secondary" id="btnCancelarStory" type="button">Cancelar</button></div>
+<div class="status" id="storyStatus"></div>
+</div>
+</div>
+<div class="card" id="encontros">
+<div class="sectionHead"><div><h2>🔥 Encontros de hoje</h2><p class="small">Veja quem está procurando companhia.</p></div><button id="btnAtualizarEncontros">Atualizar</button></div>
+<div class="row">
+<input id="filtroCidade" placeholder="Filtrar por cidade"/>
+<button class="secondary" id="btnLocalizacao" type="button">📍 Usar minha localização</button>
+<select id="filtroHorario"><option value="">Todos os horários</option><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="noite">Noite</option></select>
+</div>
+<div aria-live="polite" class="small" id="locationStatus">Localização automática opcional.</div>
+<div id="encontrosLista"></div>
+</div>
+<div class="card createLauncher">
+<h2>➕ Criar um encontro</h2>
+<p class="small">Publique seu encontro somente quando quiser. O formulário fica separado da tela inicial.</p>
+<button class="primary" id="btnAbrirCriarEncontro">➕ Criar encontro hoje</button>
+</div>
+<div class="modal" id="createDateModal" aria-hidden="true">
+  <div class="modalBox">
+    <div class="sectionHead"><div><h2>➕ Criar encontro hoje</h2><p class="small">Publique apenas locais públicos e seguros.</p></div><button class="secondary closeModal" id="btnFecharCriarEncontro" type="button">Fechar</button></div>
+    <input id="dt" maxlength="100" placeholder="Ex.: 🍹 Happy hour hoje"/>
+    <input id="dh" type="datetime-local"/>
+    <input id="dv" maxlength="120" placeholder="Local público"/>
+    <input id="dc" maxlength="80" placeholder="Cidade"/>
+    <textarea id="dd" maxlength="600" placeholder="Conte como será o encontro"></textarea>
+    <input id="dm" max="50" min="2" placeholder="Máximo de pessoas" type="number" value="10"/>
+    <button class="primary" id="btnCriarEncontro">🚀 Publicar encontro</button>
+    <div class="status" id="dateStatus"></div>
+  </div>
+</div>
+<div class="card" id="interesses">
+<div class="sectionHead"><div><h2>❤️ Meus encontros</h2><p class="small">Veja quem demonstrou interesse e aceite.</p></div><button id="btnMeusEncontros">Atualizar</button></div>
+<div id="mineDates"></div>
+</div>
+<div class="card" id="conversas">
+<div class="sectionHead"><div><h2>💬 Matches e conversas</h2><p class="small">Aceite um interesse para criar um match e abrir uma conversa privada.</p></div><button id="btnMatches">Atualizar</button></div>
+<div id="matchList"></div>
+<div id="chatArea"></div>
+</div>
+<div class="card" id="pontos">
+<div class="sectionHead"><div><h2>🏆 Pontos &amp; recompensas</h2><p class="small">Complete ações no app e troque pontos por benefícios.</p></div><button id="btnPontos">Atualizar</button></div>
+<div id="pointsSummary"></div>
+<div id="rewardsList"></div>
+</div>
+<div class="card" id="perfil" aria-hidden="true">
+<div class="profileEditorInner">
+<div class="sectionHead"><div><h2>👤 Meu perfil</h2><p class="small">Edite suas informações, foto e música.</p></div><button class="secondary profileClose" id="btnFecharPerfil" type="button">Fechar</button></div>
+<div id="profileHead"></div>
+<div class="musicHighlight" id="musicHighlight"><div class="eyebrow">🎵 SUA MÚSICA</div><div class="musicHighlightTitle">A música que representa você</div><div id="musicaPreview" class="item musicFeatured"></div></div>
+<input accept="image/*" id="fotoPerfil" type="file"/>
+<img alt="Prévia da foto do perfil" class="preview" id="fotoPreview"/>
+<input id="nome" maxlength="80" placeholder="Seu nome"/>
+<input id="idade" max="100" min="18" placeholder="Sua idade" type="number"/>
+<input id="cidade" maxlength="80" placeholder="Sua cidade"/>
+<input id="estado" maxlength="40" placeholder="Estado"/>
+<textarea id="bio" maxlength="500" placeholder="Conte um pouco sobre você"></textarea>
+<input id="musica" placeholder="🎵 Link do Spotify ou YouTube" type="url"/>
+<input id="musicaNome" maxlength="120" placeholder="Nome da música / artista"/>
+<button class="primary" id="btnSalvarPerfil">Salvar perfil</button>
+<div class="status" id="profileStatus"></div>
+</div>
+</div>
+<div class="card" id="seguranca">
+<h2>🛡️ Segurança</h2>
+<p class="small">Use bloqueio e denúncia se alguém ultrapassar seus limites. Usuários bloqueados deixam de aparecer nos seus encontros e Stories. O DateAgora recomenda encontros em locais públicos.</p>
+<div id="segurancaLista"></div>
+</div>
+<div class="card" id="parceiros">
+<h2>🏪 Estabelecimentos parceiros</h2>
+<p class="small">Bares, restaurantes e cafés podem participar do ecossistema DateAgora.</p>
+<button class="secondary" id="btnParceiro">Quero ser parceiro</button>
+<div class="status" id="partnerStatus"></div>
+</div>
+<div class="card" id="premium">
+<h2>⭐ DateAgora Premium</h2>
+<p class="small">Área preparada para recursos premium. Pagamento real ainda depende da integração com um gateway.</p>
+<div class="item"><b>Premium</b><p class="small">Filtros avançados, destaque e recursos exclusivos.</p><button class="gold" id="btnPremium">Quero conhecer</button></div>
+<div class="status" id="premiumStatus"></div>
+</div>
+<button class="secondary" id="btnSair">Sair da conta</button>
+</section>
+<div aria-label="Story" aria-modal="true" class="storyModal hidden" id="storyModal" role="dialog">
+<div class="storyViewer">
+<button aria-label="Fechar" class="storyClose" id="storyClose" type="button">✕</button>
+<div class="storyPhotoWrap">
+<img alt="Story" id="storyModalImage" src=""/>
+<div class="storyHeader" id="storyModalHeader">
+<div class="storyInitial" id="storyModalAvatar">●</div>
+<span id="storyModalName"></span>
+</div>
+</div>
+<div class="storyCaption" id="storyModalCaption"></div>
+</div>
+</div>
+
+
+<div id="interactionMenu" class="card" style="margin:12px 0">
+  <h2>❤️ Interações</h2>
+  <p class="small">Aqui ficam separados os interessados nos seus encontros e os matches.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button type="button" class="primary" id="goInterested">❤️ Pessoas interessadas</button>
+    <button type="button" class="primary" id="goMyMatches">🤝 Meus matches</button>
+  </div>
+</div>
+<script>
+(function(){
+  const interested=document.getElementById("goInterested");
+  const matches=document.getElementById("goMyMatches");
+  interested?.addEventListener("click",()=>{
+    document.getElementById("btnMeusEncontros")?.click();
+    document.getElementById("interesses")?.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+  matches?.addEventListener("click",()=>{
+    document.getElementById("btnMatches")?.click();
+    document.getElementById("conversas")?.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+})();
+</script>
+
+<div id="centralAcesso" class="card" style="margin:12px 0">
+  <h2>❤️ Seus contatos</h2>
+  <p class="small">Acesse rapidamente quem demonstrou interesse nos seus encontros e seus matches.</p>
+  <div class="row" style="flex-wrap:wrap">
+    <button type="button" class="primary" id="abrirInteresses">❤️ Pessoas interessadas</button>
+    <button type="button" class="primary" id="abrirMatches">🤝 Meus matches</button>
+  </div>
+</div>
+<script>
+(function(){
+  const go=(id)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  document.getElementById('abrirInteresses')?.addEventListener('click',()=>{
+    document.getElementById('btnMeusEncontros')?.click();
+    setTimeout(()=>go('interesses'),120);
+  });
+  document.getElementById('abrirMatches')?.addEventListener('click',()=>{
+    document.getElementById('btnMatches')?.click();
+    setTimeout(()=>go('conversas'),120);
+  });
+})();
+</script>
+
+<nav class="nav" id="bottomNav">
+<button data-target="inicio"><b>⌂</b>Início</button>
+<button data-target="encontros"><b>🔥</b>Encontros</button>
+<button data-target="interesses"><b>♥</b>Interesses</button>
+<button data-target="conversas"><b>💬</b>Conversas</button>
+<button data-target="perfil"><b>●</b>Perfil</button>
+</nav>
+</main>
+<script>
+const SUPABASE_URL="https://qehxxjuertsyadtecvfh.supabase.co";
+const SUPABASE_KEY="sb_publishable_AVeHuTYgCUnBxj9DZCxCgA_n1_Sm2Vc";
+const SB=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+let currentUser=null,currentMatch=null,chatChannel=null,storyFile=null,profileFile=null;
+const esc=v=>{const d=document.createElement("div");d.textContent=v??"";return d.innerHTML};
+const msg=(id,text,good=false)=>{$(id).textContent=text;$(id).className="status "+(good?"ok":"err")};
+const todayStart=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const todayEnd=()=>{const d=new Date();d.setHours(23,59,59,999);return d};
+function scrollToId(id){$(id)?.scrollIntoView({behavior:"smooth",block:"start"})}
+
+function recoveryMode(){return /type=recovery/i.test(location.href)||/[?&]reset=1/i.test(location.search)}
+async function showApp(){
+  try{
+    const {data,error}=await SB.auth.getUser();
+    if(error||!data?.user){showLogin();return;}
+    currentUser=data.user;
+    $("login").style.display="none";$("reset").style.display="none";
+    $("app").style.display="block";$("bottomNav").style.display="grid";
+    if($("locationStatus")) $("locationStatus").textContent="📍 Toque em “Usar minha localização” para encontrar sua cidade automaticamente.";
+    const tarefas=[loadProfile,loadStories,loadDates,loadMyDates,loadMatches,loadPoints];
+    const resultados=await Promise.allSettled(tarefas.map(fn=>fn()));
+    const falhas=resultados.filter(r=>r.status==="rejected");
+    if(falhas.length) console.warn("Módulos que falharam ao carregar:",falhas);
+  }catch(err){
+    console.error("showApp:",err);
+    showLogin();
+    msg("status","Não foi possível abrir o aplicativo. Tente entrar novamente.");
+  }
+}
+async function showLogin(){currentUser=null;$("app").style.display="none";$("bottomNav").style.display="none";$("login").style.display="block";$("reset").style.display="none"}
+
+async function login(){
+  const e=$("email").value.trim(),p=$("senha").value;
+  if(!e||!p){msg("status","Digite e-mail e senha.");return}
+  $("btnEntrar").disabled=true;msg("status","Entrando...",true);
+  const {data,error}=await SB.auth.signInWithPassword({email:e,password:p});
+  $("btnEntrar").disabled=false;
+  if(error){msg("status","Erro: "+error.message);return}
+  currentUser=data?.user||currentUser;
+  msg("status","Login realizado. Abrindo o DateAgora...",true);
+  if(currentUser) await showApp();
+}
+async function signup(){
+  const e=$("email").value.trim(),p=$("senha").value;
+  if(!e||p.length<6){msg("status","Informe e-mail e uma senha com pelo menos 6 caracteres.");return}
+  msg("status","Criando conta...",true);
+  const {error}=await SB.auth.signUp({email:e,password:p});
+  if(error)msg("status","Erro: "+error.message);else msg("status","✅ Conta criada. Se o e-mail de confirmação estiver ativo, confirme seu e-mail.",true);
+}
+async function resetPassword(){
+  const e=$("email").value.trim();
+  if(!e){msg("status","Digite seu e-mail primeiro.");return}
+  const redirect=location.href.split("#")[0].split("?")[0]+"?reset=1";
+  const {error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:redirect});
+  if(error)msg("status","Erro: "+error.message);else msg("status","📧 Link de recuperação enviado.",true);
+}
+async function saveNewPassword(){
+  const p=$("novaSenha").value,c=$("confirmaSenha").value;
+  if(p.length<6){msg("resetStatus","A senha precisa ter pelo menos 6 caracteres.");return}
+  if(p!==c){msg("resetStatus","As senhas não conferem.");return}
+  msg("resetStatus","Salvando...",true);
+  let {data:{session}}=await SB.auth.getSession();
+  if(!session){
+    const h=new URLSearchParams(location.hash.replace(/^#/,""));
+    const access_token=h.get("access_token"),refresh_token=h.get("refresh_token");
+    if(access_token&&refresh_token){const r=await SB.auth.setSession({access_token,refresh_token});session=r.data?.session||null}
+  }
+  if(!session){msg("resetStatus","O link de recuperação expirou. Solicite outro.");return}
+  const {error}=await SB.auth.updateUser({password:p});
+  if(error){msg("resetStatus","Erro: "+error.message);return}
+  history.replaceState({},document.title,location.pathname);
+  $("novaSenha").value=$("confirmaSenha").value="";
+  msg("resetStatus","✅ Senha alterada com sucesso.",true);
+  setTimeout(showApp,700);
+}
+
+async function loadProfile(){
+  const {data:{user}}=await SB.auth.getUser();if(!user)return;
+  const {data,error}=await SB.from("profiles").select("*").eq("id",user.id).maybeSingle();
+  if(error){console.error(error);return}
+  if(data){
+    $("nome").value=data.name||"";$("idade").value=data.age||"";$("cidade").value=data.city||"";$("estado").value=data.state||"";$("bio").value=data.bio||"";
+    $("musica").value=data.music_url||"";$("musicaNome").value=data.music_name||"";
+    renderMusic(data.music_url,data.music_name);renderProfileHead(data);
+  }else renderProfileHead(null);
+}
+function renderProfileHead(p){
+  const name=p?.name||"Seu perfil",age=p?.age?` • ${p.age}`:"";
+  $("profileHead").innerHTML=`<div class="profileHead"><img class="avatar" src="${esc(p?.photo_url||"")}" onerror="this.style.display='none'"><div><b>${esc(name)}${age}</b><div class="small">${esc(p?.city||"Complete seu perfil")}</div></div></div>`;
+  $("miniPerfil").innerHTML=`<div class="profileHead"><img class="avatar" src="${esc(p?.photo_url||"")}" onerror="this.style.display='none'"><div><b>${esc(name)}${age}</b><div class="small">${esc(p?.bio||"Adicione foto, bio e música no seu perfil.")}</div></div></div>`;
+}
+function getYoutubeId(url){
+  if(!url)return "";
+  try{
+    const u=new URL(url.trim());
+    const host=u.hostname.toLowerCase().replace(/^www\./,"");
+    if(host==="youtu.be"){
+      return u.pathname.split("/").filter(Boolean)[0]||"";
+    }
+    if(host.includes("youtube.com")){
+      const v=u.searchParams.get("v");
+      if(v)return v;
+      const parts=u.pathname.split("/").filter(Boolean);
+      if(parts[0]==="shorts" || parts[0]==="embed" || parts[0]==="live") return parts[1]||"";
+    }
+  }catch(e){}
+  return "";
+}
+
+function renderMusic(url,name){
+  const box=$("musicaPreview");
+  if(!box)return;
+  box.classList.add("musicFeatured");
+  const cleanUrl=(url||"").trim();
+  const title=esc(name||"Minha música");
+
+  if(!cleanUrl){
+    box.innerHTML=`<div><b>🎵 Sua música</b><div class="small" style="margin-top:5px">Adicione uma música no seu perfil para ela aparecer aqui.</div></div>`;
+    return;
+  }
+
+  const id=getYoutubeId(cleanUrl);
+
+  if(id){
+    const embed=`https://www.youtube.com/embed/${encodeURIComponent(id)}?rel=0&playsinline=1`;
+    box.innerHTML=`
+      <div style="margin-top:2px;width:100%">
+        <div style="font-weight:800;margin-bottom:9px">🎵 ${title}</div>
+        <div style="position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:14px;overflow:hidden;border:1px solid #303039">
+          <iframe src="${embed}" title="${title}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+        </div>
+        <a href="${esc(cleanUrl)}" target="_blank" rel="noopener" style="display:block;margin-top:9px;text-align:center;color:#fff;text-decoration:none;background:#18181d;border:1px solid #34343b;border-radius:12px;padding:10px;font-weight:700">▶️ Abrir música</a>
+      </div>`;
+    return;
+  }
+
+  box.innerHTML=`<div style="width:100%"><div style="font-weight:800">🎵 ${title}</div><div class="small" style="margin:6px 0 10px">Link salvo no perfil.</div><a href="${esc(cleanUrl)}" target="_blank" rel="noopener" style="display:block;text-align:center;color:#fff;text-decoration:none;background:#18181d;border:1px solid #34343b;border-radius:12px;padding:10px;font-weight:700">▶️ Abrir música</a></div>`;
+}
+async function uploadFile(file,folder){
+  if(!file)return null;
+  if(file.size>8*1024*1024)throw new Error("A imagem precisa ter no máximo 8 MB.");
+  if(!file.type.startsWith("image/"))throw new Error("Escolha uma imagem.");
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=`${currentUser.id}/${folder}-${Date.now()}.${ext}`;
+  const {error}=await SB.storage.from("dateagora-media").upload(path,file,{upsert:false,contentType:file.type});
+  if(error)throw error;
+  const {data}=SB.storage.from("dateagora-media").getPublicUrl(path);
+  return data.publicUrl;
+}
+async function saveProfile(){
+  if(!currentUser)return;
+  const n=$("nome").value.trim(),age=Number($("idade").value),city=$("cidade").value.trim(),state=$("estado").value.trim(),bio=$("bio").value.trim(),mu=$("musica").value.trim(),mn=$("musicaNome").value.trim();
+  if(!n||age<18||age>100||!city){msg("profileStatus","Preencha nome, idade (18+) e cidade.");return}
+  try{
+    let photo_url;
+    if(profileFile)photo_url=await uploadFile(profileFile,"profile");
+    const payload={id:currentUser.id,name:n,age,city,state,bio,music_url:mu||null,music_name:mn||null,updated_at:new Date().toISOString()};
+    if(photo_url)payload.photo_url=photo_url;
+    const {error}=await SB.from("profiles").upsert(payload);
+    if(error)throw error;
+    profileFile=null;$("fotoPerfil").value="";renderMusic(mu,mn);await loadProfile();msg("profileStatus","✅ Perfil salvo.",true);
+  }catch(e){msg("profileStatus","Erro: "+e.message)}
+}
+
+async function getBlockedIds(){
+  if(!currentUser)return new Set();
+  const {data}=await SB.from("blocks").select("blocked_id").eq("blocker_id",currentUser.id);
+  return new Set((data||[]).map(x=>x.blocked_id));
+}
+async function loadStories(){
+  const {data,error}=await SB.from("stories").select("id,user_id,photo_url,caption,created_at,expires_at").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(40);
+  if(error){$("storyRail").innerHTML="<span class='small'>Não foi possível carregar Stories.</span>";return}
+  const blocked=await getBlockedIds();
+  const visible=(data||[]).filter(s=>s.user_id===currentUser.id||!blocked.has(s.user_id));
+  if(!visible.length){$("storyRail").innerHTML="<span class='small'>Ainda não há Stories ativos.</span>";return}
+  const ids=[...new Set(visible.map(x=>x.user_id))],{data:profiles}=await SB.from("profiles").select("id,name,age,photo_url").in("id",ids);
+  const map=Object.fromEntries((profiles||[]).map(x=>[x.id,x]));
+  $("storyRail").innerHTML="";
+  visible.forEach(s=>{
+    const p=map[s.user_id]||{},d=document.createElement("div");d.className="story";
+    const own=s.user_id===currentUser.id; d.innerHTML=`<img src="${esc(s.photo_url)}" alt="Story de ${esc(p.name||"usuário")}"><div class="small">${esc(own?"Seu Story":(p.name||"Usuário"))}</div>`;
+    d.setAttribute("role","button");d.tabIndex=0;
+    d.onclick=()=>openStory(s.photo_url,s.caption,p.name,p.photo_url);
+    d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStory(s.photo_url,s.caption,p.name,p.photo_url)}};
+    $("storyRail").appendChild(d);
+  });
+}
+function openStory(url,caption,name,avatarUrl){
+  $("storyModalImage").src=url;
+  $("storyModalImage").alt="Story de "+(name||"usuário");
+  $("storyModalName").textContent=name||"Usuário";
+  const avatar=$("storyModalAvatar");
+  if(avatarUrl){avatar.outerHTML='<img id="storyModalAvatar" src="'+esc(avatarUrl)+'" alt="Foto de '+esc(name||"usuário")+'">';}
+  else{avatar.outerHTML='<div id="storyModalAvatar" class="storyInitial">'+esc((name||"U").charAt(0).toUpperCase())+'</div>';}
+  $("storyModalCaption").textContent=caption||"";
+  $("storyModal").classList.remove("hidden");
+}
+function closeStory(){
+  $("storyModal").classList.add("hidden");
+  $("storyModalImage").src="";
+  $("storyModalName").textContent="";
+  $("storyModalCaption").textContent="";
+}
+$("storyClose").onclick=closeStory;
+$("storyModal").addEventListener("click",e=>{if(e.target===$("storyModal"))closeStory()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeStory()});
+
+$("storyFile").addEventListener("change",e=>{storyFile=e.target.files?.[0]||null;const im=$("storyPreview");if(storyFile){im.src=URL.createObjectURL(storyFile);im.style.display="block"}else im.style.display="none"});
+async function publishStory(){
+  if(!storyFile){msg("storyStatus","Escolha uma foto.");return}
+  try{
+    msg("storyStatus","Enviando...",true);
+    const url=await uploadFile(storyFile,"story");
+    const {error}=await SB.from("stories").insert({user_id:currentUser.id,photo_url:url,caption:$("storyCaption").value.trim()||null});
+    if(error)throw error;
+    storyFile=null;$("storyFile").value="";$("storyCaption").value="";$("storyPreview").style.display="none";await loadStories();msg("storyStatus","✅ Story publicado por 24 horas.",true);
+  }catch(e){msg("storyStatus","Erro: "+e.message)}
+}
+
+function hourBucket(iso){const h=new Date(iso).getHours();return h<12?"manha":h<18?"tarde":"noite"}
+async function loadDates(){
+  const box=$("encontrosLista");box.innerHTML="Carregando...";
+  const {data,error}=await SB.from("dates").select("*").gte("date_time",todayStart().toISOString()).lte("date_time",todayEnd().toISOString()).eq("status","active").order("date_time",{ascending:true});
+  if(error){box.innerHTML=`<span class="err">Erro: ${esc(error.message)}</span>`;return}
+  const blocked=await getBlockedIds();
+  const city=$("filtroCidade").value.trim().toLowerCase(),time=$("filtroHorario").value;
+  const rows=(data||[]).filter(e=>e.creator_id!==currentUser.id&&!blocked.has(e.creator_id)&&(!city||String(e.city||"").toLowerCase().includes(city))&&(!time||hourBucket(e.date_time)===time));
+  if(!rows.length){box.innerHTML="<p class='small'>Nenhum encontro encontrado para os filtros atuais.</p>";return}
+  box.innerHTML="";
+  rows.forEach(e=>{
+    const d=document.createElement("div");d.className="date";
+    d.innerHTML=`<h3>${esc(e.title)}</h3><p>🕐 ${new Date(e.date_time).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})} · 👥 até ${e.max_people||10}</p><p>📍 ${esc(e.venue_name)} — ${esc(e.city)}</p><p>${esc(e.description||"")}</p>`;
+    const b=document.createElement("button");b.className="heart";b.textContent="❤️ Tenho interesse";b.onclick=()=>interest(e.id);d.appendChild(b);
+    const safe=document.createElement("button");safe.className="secondary";safe.textContent="🛡️ Denunciar encontro";safe.onclick=()=>reportUser(e.creator_id);d.appendChild(safe);
+    box.appendChild(d);
+  });
+}
+
+async function interest(dateId){
+  const {data:{user}}=await SB.auth.getUser();if(!user)return;
+  const {data:date,error:de}=await SB.from("dates").select("creator_id").eq("id",dateId).maybeSingle();
+  if(de){alert(de.message);return}if(date?.creator_id===user.id){alert("Você não pode demonstrar interesse no próprio encontro.");return}
+  const {error}=await SB.from("date_interests").insert({date_id:dateId,user_id:user.id,status:"pending"});
+  if(error)alert(error.code==="23505"?"Você já demonstrou interesse.":error.message);else{alert("❤️ Interesse enviado!");await award(5,"Demonstrou interesse");}
+}
+async function createDate(){
+  const title=$("dt").value.trim(),raw=$("dh").value,venue=$("dv").value.trim(),city=$("dc").value.trim(),desc=$("dd").value.trim(),max=Math.max(2,Math.min(50,Number($("dm").value)||10)),when=new Date(raw);
+  if(!title||!raw||!venue||!city||Number.isNaN(when.getTime())){msg("dateStatus","Preencha os campos.");return}
+  const now=new Date();if(when<=now||when.toDateString()!==now.toDateString()){msg("dateStatus","O encontro precisa acontecer hoje e em um horário futuro.");return}
+  const {error}=await SB.from("dates").insert({creator_id:currentUser.id,title,date_time:when.toISOString(),venue_name:venue,city,description:desc,max_people:max,status:"active"});
+  if(error)msg("dateStatus","Erro: "+error.message);else{$("dt").value=$("dh").value=$("dv").value=$("dc").value=$("dd").value="";await loadDates();await loadMyDates();await award(20,"Criou um encontro");msg("dateStatus","✅ Encontro publicado!",true)}
+}
+async function loadMyDates(){
+  const box=$("mineDates");const {data,error}=await SB.from("dates").select("*").eq("creator_id",currentUser.id).order("date_time",{ascending:false}).limit(20);
+  if(error){box.innerHTML=`<span class='err'>${esc(error.message)}</span>`;return}
+  if(!data?.length){box.innerHTML="<p class='small'>Você ainda não publicou encontros.</p>";return}
+  box.innerHTML="";
+  for(const e of data){
+    const d=document.createElement("div");d.className="date";d.innerHTML=`<h3>${esc(e.title)}</h3><p>📍 ${esc(e.venue_name)} — ${esc(e.city)}</p><div id="int-${e.id}">Carregando interessados...</div>`;box.appendChild(d);loadInterests(e.id);
+  }
+}
+async function loadInterests(dateId){
+  const box=$("int-"+dateId);if(!box)return;
+  const {data,error}=await SB.from("date_interests").select("id,user_id,status").eq("date_id",dateId);
+  if(error){box.innerHTML=`<span class='err'>${esc(error.message)}</span>`;return}
+  if(!data?.length){box.innerHTML="<span class='small'>❤️ Nenhum interessado ainda.</span>";return}
+  const ids=data.map(x=>x.user_id),{data:p}=await SB.from("profiles").select("id,name,age,city,photo_url").in("id",ids),map=Object.fromEntries((p||[]).map(x=>[x.id,x]));
+  box.innerHTML="<b>❤️ Interessados</b>";
+  data.forEach(i=>{
+    const x=map[i.user_id]||{},d=document.createElement("div");d.className="item";d.innerHTML=`<div class="profileHead"><img class="avatar" src="${esc(x.photo_url||"")}" onerror="this.style.display='none'"><div><b>${esc(x.name||"Usuário")}${x.age?` • ${x.age}`:""}</b><div class="small">${esc(x.city||"")}</div><span class="badge">${i.status==="accepted"?"✅ Aceito":"⏳ Pendente"}</span></div></div>`;
+    if(i.status==="pending"){const row=document.createElement("div");row.className="row";const accept=document.createElement("button");accept.className="green";accept.textContent="❤️ Aceitar";accept.onclick=()=>acceptInterest(i.id,dateId,i.user_id);const deny=document.createElement("button");deny.className="secondary";deny.textContent="Recusar";deny.onclick=()=>rejectInterest(i.id,dateId);row.append(accept,deny);d.appendChild(row)}
+    const safeRow=document.createElement("div");safeRow.className="row";const report=document.createElement("button");report.className="secondary";report.textContent="🚩 Denunciar";report.onclick=()=>reportUser(i.user_id);const block=document.createElement("button");block.className="secondary";block.textContent="🚫 Bloquear";block.onclick=()=>blockUser(i.user_id);safeRow.append(report,block);d.appendChild(safeRow)
+    box.appendChild(d);
+  });
+}
+async function acceptInterest(interestId,dateId,otherId){
+  if(!currentUser?.id||!dateId||!otherId)return;
+  const {data:date,error:de}=await SB.from("dates").select("creator_id").eq("id",dateId).maybeSingle();
+  if(de){alert(de.message);return}
+  if(!date||date.creator_id!==currentUser.id){alert("Somente o criador do encontro pode aceitar este interesse.");return}
+  const {data:interest,error:ie}=await SB.from("date_interests").select("id,status,user_id").eq("id",interestId).eq("date_id",dateId).maybeSingle();
+  if(ie){alert(ie.message);return}
+  if(!interest){alert("Interesse não encontrado.");return}
+  if(interest.status!=="pending"){alert(interest.status==="accepted"?"Este interesse já foi aceito.":"Este interesse não está mais pendente.");await loadMyDates();return}
+  const {error}=await SB.from("date_interests").update({status:"accepted"}).eq("id",interestId).eq("date_id",dateId).eq("status","pending");
+  if(error){alert(error.message);return}
+  const {error:me}=await SB.from("matches").insert({date_id:dateId,user_one_id:currentUser.id,user_two_id:otherId});
+  if(me&&me.code!=="23505"){alert("Erro ao criar match: "+me.message);return}
+  alert("❤️ Match criado! Agora vocês podem conversar.");
+  await award(15,"Aceitou um interesse");
+  await loadMyDates();
+  await loadMatches();
+}
+async function rejectInterest(id,dateId){const {error}=await SB.from("date_interests").update({status:"rejected"}).eq("id",id);if(error)alert(error.message);else loadInterests(dateId)}
+
+async function loadMatches(){
+  const box=$("matchList");$("chatArea").innerHTML="";
+  const {data,error}=await SB.from("matches").select("*").or(`user_one_id.eq.${currentUser.id},user_two_id.eq.${currentUser.id}`).order("created_at",{ascending:false});
+  if(error){box.innerHTML=`<span class='err'>${esc(error.message)}</span>`;return}
+  if(!data?.length){box.innerHTML="<p class='small'>Nenhuma conversa ainda.</p>";return}
+  const ids=data.map(m=>m.user_one_id===currentUser.id?m.user_two_id:m.user_one_id),{data:p}=await SB.from("profiles").select("id,name,age,photo_url").in("id",ids),map=Object.fromEntries((p||[]).map(x=>[x.id,x]));
+  box.innerHTML="";
+  const blocked=await getBlockedIds();
+  data.filter(m=>{const other=m.user_one_id===currentUser.id?m.user_two_id:m.user_one_id;return !blocked.has(other)}).forEach(m=>{const other=m.user_one_id===currentUser.id?m.user_two_id:m.user_one_id,x=map[other]||{},wrap=document.createElement("div");wrap.className="item";const b=document.createElement("button");b.className="secondary";b.style.textAlign="left";b.innerHTML=`❤️ ${esc(x.name||"Match")}${x.age?` • ${x.age}`:""}<div class="small">Abrir conversa</div>`;b.onclick=()=>openChat(m.id,x.name||"Match");wrap.appendChild(b);const row=document.createElement("div");row.className="row";const report=document.createElement("button");report.className="secondary";report.textContent="🚩 Denunciar";report.onclick=()=>reportUser(other);const block=document.createElement("button");block.className="secondary";block.textContent="🚫 Bloquear";block.onclick=()=>blockUser(other);row.append(report,block);wrap.appendChild(row);box.appendChild(wrap)})
+}
+async function openChat(matchId,name){
+  if(!matchId)return;
+  currentMatch=matchId;
+  $("chatArea").innerHTML=`<div class="item"><div class="row" style="align-items:center;justify-content:space-between"><div><h3>💬 ${esc(name||"Match")}</h3><div class="small">Conversa privada entre vocês.</div></div><button type="button" class="secondary" id="closeChat">Fechar</button></div><div id="chat" class="chat">Carregando...</div><div class="row chatComposer" style="display:flex!important;flex-wrap:nowrap!important;align-items:center!important;width:100%!important"><input id="chatInput" type="text" maxlength="1000" autocomplete="off" placeholder="Escreva uma mensagem..." style="flex:1 1 0!important;min-width:0!important;width:0!important"><button class="primary" id="sendMsg" type="button" style="flex:0 0 96px!important;width:96px!important;min-width:96px!important">Enviar</button></div></div>`;
+  $("closeChat").onclick=()=>{$("chatArea").innerHTML="";currentMatch=null;if(chatChannel){SB.removeChannel(chatChannel);chatChannel=null}};
+  $("sendMsg").onclick=sendMessage;
+  $("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage()}});
+  await loadMessages();
+  if(chatChannel)await SB.removeChannel(chatChannel);
+  chatChannel=SB.channel("dateagora-chat-"+matchId).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"match_id=eq."+matchId},payload=>{if(payload?.new?.match_id===currentMatch)loadMessages()}).subscribe();
+}
+async function loadMessages(){
+  if(!currentMatch)return;const box=$("chat");if(!box)return;
+  const {data,error}=await SB.from("messages").select("*").eq("match_id",currentMatch).order("created_at",{ascending:true}).limit(100);
+  if(error){box.textContent=error.message;return}
+  box.innerHTML=(data||[]).map(m=>`<div class="msg ${m.sender_id===currentUser.id?"mine":""}">${esc(m.message)}<small>${new Date(m.created_at).toLocaleString("pt-BR")}</small></div>`).join("")||"<span class='small'>Comece a conversa.</span>";
+  box.scrollTop=box.scrollHeight;
+}
+async function sendMessage(){
+  const input=$("chatInput"),text=input?.value.trim();if(!text||!currentMatch||!currentUser?.id)return;
+  if(text.length>1000){alert("Mensagem muito longa.");return}
+  const matchAtSend=currentMatch;
+  const {error}=await SB.from("messages").insert({match_id:matchAtSend,sender_id:currentUser.id,message:text});
+  if(error)alert(error.message);else{input.value="";await loadMessages()}
+}
+
+async function award(points,reason){
+  const {error}=await SB.rpc("registrar_pontos",{p_points:points,p_reason:reason});
+  if(error)console.warn("Pontos:",error.message);
+}
+async function loadPoints(){
+  const {data,error}=await SB.from("reward_transactions").select("points,reason,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+  if(error){$("pointsSummary").innerHTML=`<span class='err'>${esc(error.message)}</span>`;return}
+  const total=(data||[]).reduce((s,x)=>s+Number(x.points||0),0),level=Math.max(1,Math.floor(Math.max(0,total)/100)+1);
+  $("pointsSummary").innerHTML=`<div class="item"><h3>🏆 ${total} pontos</h3><p class="small">Nível ${level} · ${total%100}/100 para o próximo nível</p></div>`;
+  const rewards=[["☕ Benefício parceiro","100","Desconto/benefício em estabelecimento parceiro"],["⭐ Destaque no app","250","Recompensa promocional do DateAgora"],["🎁 Recompensa especial","500","Benefício sujeito a disponibilidade"]];
+  $("rewardsList").innerHTML="<h3 style='margin-top:14px'>Recompensas</h3>"+rewards.map(r=>`<div class="item"><b>${r[0]}</b><p class="small">${r[2]}</p><button class="gold" data-cost="${r[1]}" data-reason="${r[0]} — ${r[1]} pontos">Resgatar por ${r[1]} pontos</button></div>`).join("");
+  $("rewardsList").querySelectorAll("button").forEach(b=>b.onclick=()=>redeem(Number(b.dataset.cost),b.dataset.reason));
+}
+async function redeem(cost,reason){
+  const {error}=await SB.rpc("resgatar_pontos",{p_custo:cost,p_reason:reason});
+  if(error){alert(error.message);return}alert("🎁 Resgate registrado!");await loadPoints();
+}
+
+async function loadSafety(){
+  const {data,error}=await SB.from("blocks").select("blocked_id,created_at").eq("blocker_id",currentUser.id);
+  if(error){$("segurancaLista").innerHTML="<span class='small'>A área de segurança ficará disponível após sua primeira interação.</span>";return}
+  $("segurancaLista").innerHTML=data?.length?`<p class='small'>Você bloqueou ${data.length} usuário(s).</p>`:"<p class='small'>Nenhum usuário bloqueado.</p>";
+}
+async function reportUser(otherId){
+  const reason=prompt("Motivo da denúncia:");if(!reason)return;
+  const {error}=await SB.from("reports").insert({reporter_id:currentUser.id,reported_id:otherId,reason,description:"Denúncia enviada pelo app",status:"open"});
+  alert(error?error.message:"✅ Denúncia enviada.");
+}
+async function blockUser(otherId){
+  if(!otherId||otherId===currentUser.id)return;
+  const ok=confirm("Bloquear este usuário? Ele não aparecerá mais nos seus encontros e Stories.");if(!ok)return;
+  const {error}=await SB.from("blocks").upsert({blocker_id:currentUser.id,blocked_id:otherId},{onConflict:"blocker_id,blocked_id"});
+  if(error){alert(error.message);return}
+  alert("🚫 Usuário bloqueado.");
+  await loadSafety();await loadStories();await loadDates();await loadMatches();
+}
+
+async function reverseCity(lat,lon){
+  const providers=[
+    async()=>{
+      const r=await fetch("https://photon.komoot.io/reverse?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon),{headers:{"Accept":"application/json"}});
+      if(!r.ok)throw new Error("photon");
+      const d=await r.json(),p=d.features?.[0]?.properties||{};
+      return {city:p.city||p.town||p.village||p.locality||"",state:p.state||""};
+    },
+    async()=>{
+      const r=await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&localityLanguage=pt",{headers:{"Accept":"application/json"}});
+      if(!r.ok)throw new Error("bigdatacloud");
+      const d=await r.json();
+      return {city:d.city||d.locality||d.principalSubdivision||"",state:d.principalSubdivision||""};
+    },
+    async()=>{
+      const r=await fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+"&zoom=10&addressdetails=1",{headers:{"Accept":"application/json"}});
+      if(!r.ok)throw new Error("nominatim");
+      const d=await r.json(),a=d.address||{};
+      return {city:a.city||a.town||a.municipality||a.village||"",state:a.state||""};
+    }
+  ];
+  for(const provider of providers){
+    try{
+      const result=await provider();
+      if(result.city)return result;
+    }catch(e){}
+  }
+  return {city:"",state:""};
+}
+
+async function usarMinhaLocalizacao(){
+  const status=$("locationStatus");
+  if(!window.isSecureContext){
+    status.textContent="📍 Abra o DateAgora pelo endereço HTTPS do GitHub Pages para permitir a localização.";
+    return;
+  }
+  if(!navigator.geolocation){
+    status.textContent="📍 Seu navegador não permite localização automática. Digite a cidade no campo.";
+    return;
+  }
+  status.textContent="📍 Pedindo permissão de localização...";
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude,lon=pos.coords.longitude;
+    status.textContent="📍 Localização encontrada. Identificando a cidade...";
+    const result=await reverseCity(lat,lon);
+    if(result.city){
+      $("filtroCidade").value=result.city;
+      $("cidade").value=result.city;
+      if(result.state)$("estado").value=result.state;
+      status.textContent="📍 "+result.city+(result.state?" — "+result.state:"");
+      await loadDates();
+    }else{
+      status.textContent="📍 Consegui sua posição, mas não consegui converter as coordenadas em cidade. Digite a cidade no campo.";
+    }
+  },err=>{
+    const reasons={1:"Permissão de localização negada. Libere a localização do navegador para o DateAgora.",2:"O aparelho não conseguiu determinar sua posição.",3:"A localização demorou. Tente novamente em um local com GPS melhor."};
+    status.textContent="📍 "+(reasons[err.code]||"Não foi possível obter sua localização.");
+  },{enableHighAccuracy:true,timeout:30000,maximumAge:0});
+}
+
+$("fotoPerfil").addEventListener("change",e=>{profileFile=e.target.files?.[0]||null;const im=$("fotoPreview");if(profileFile){im.src=URL.createObjectURL(profileFile);im.style.display="block"}else im.style.display="none"});
+$("btnLocalizacao").onclick=usarMinhaLocalizacao;
+$("filtroCidade").addEventListener("input",loadDates);$("filtroHorario").addEventListener("change",loadDates);
+$("btnEntrar").onclick=login;$("btnCadastro").onclick=signup;$("btnReset").onclick=resetPassword;$("btnNovaSenha").onclick=saveNewPassword;
+$("btnStories").onclick=loadStories;$("btnToggleStoryPublish").onclick=()=>{$("storyPublishBox").classList.toggle("hidden");};$("btnCancelarStory").onclick=()=>{$("storyPublishBox").classList.add("hidden");};$("btnPublicarStory").onclick=publishStory;$("btnAtualizarEncontros").onclick=loadDates;$("btnCriarEncontro").onclick=createDate;$("btnAbrirCriarEncontro").onclick=()=>{const m=$("createDateModal");m.classList.add("open");m.setAttribute("aria-hidden","false");setTimeout(()=>$("dt")?.focus(),50)};$("btnFecharCriarEncontro").onclick=()=>{const m=$("createDateModal");m.classList.remove("open");m.setAttribute("aria-hidden","true")};$("createDateModal").onclick=e=>{if(e.target.id==="createDateModal"){e.currentTarget.classList.remove("open");e.currentTarget.setAttribute("aria-hidden","true")}};$("btnMeusEncontros").onclick=loadMyDates;$("btnMatches").onclick=loadMatches;$("btnPontos").onclick=loadPoints;$("btnSalvarPerfil").onclick=saveProfile;
+$("btnSair").onclick=async()=>{if(chatChannel)SB.removeChannel(chatChannel);await SB.auth.signOut();showLogin()};
+$("btnParceiro").onclick=()=>{$("partnerStatus").textContent="🏪 Cadastro de parceiro será conectado ao painel administrativo.";};
+$("btnPremium").onclick=()=>{$("premiumStatus").textContent="⭐ Área Premium preparada. Para cobrança real, ainda falta conectar um gateway de pagamento."};
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=async()=>{
+  const target=b.dataset.target;
+  if(target==="perfil"){
+    $("perfil").classList.add("open");
+    $("perfil").setAttribute("aria-hidden","false");
+    await loadProfile();
+    return;
+  }
+  $("perfil")?.classList.remove("open");
+  $("perfil")?.setAttribute("aria-hidden","true");
+  scrollToId(target);
+});
+$("btnFecharPerfil")?.addEventListener("click",()=>{
+  $("perfil").classList.remove("open");
+  $("perfil").setAttribute("aria-hidden","true");
+});
+$("perfil")?.addEventListener("click",e=>{
+  if(e.target===e.currentTarget){
+    $("perfil").classList.remove("open");
+    $("perfil").setAttribute("aria-hidden","true");
+  }
+});
+
+SB.auth.onAuthStateChange((event,session)=>{
+  if(event==="PASSWORD_RECOVERY"||recoveryMode()){$("login").style.display="none";$("reset").style.display="block";return}
+  if(session&&!currentUser){currentUser=session.user;setTimeout(showApp,0);}
+  if(!session&&event==="SIGNED_OUT")showLogin();
+});
+(async()=>{
+  if(recoveryMode()){$("login").style.display="none";$("reset").style.display="block";return}
+  const {data:{session}}=await SB.auth.getSession();
+  if(session)await showApp();else await showLogin();
+})();
+</script>
+
+<div id="modoTeste" style="display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#111827;color:#fff;border:1px solid #374151;border-radius:16px;padding:14px;box-shadow:0 12px 30px rgba(0,0,0,.35);max-width:520px;margin:auto">
+  <div style="font-weight:700;margin-bottom:6px">🧪 Modo Teste DateAgora</div>
+  <div style="font-size:13px;color:#d1d5db;margin-bottom:10px">Simula dois usuários para validar Interesse → Match → Chat sem criar contas reais.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="btnTesteInteresse" type="button">❤️ Usuário B demonstra interesse</button>
+    <button id="btnTesteAceitar" type="button">✅ Usuário A aceita</button>
+    <button id="btnTesteChat" type="button">💬 Enviar mensagem</button>
+  </div>
+  <div id="testeStatus" style="font-size:13px;margin-top:10px;color:#a7f3d0">Pronto para testar.</div>
+</div>
+<script>
+(function(){
+  const root=document.getElementById('modoTeste');
+  if(!root) return;
+  let interest=false, match=false;
+  const status=document.getElementById('testeStatus');
+  const setStatus=(msg)=>{ if(status) status.textContent=msg; };
+  document.getElementById('btnTesteInteresse')?.addEventListener('click',()=>{
+    interest=true;
+    setStatus('❤️ Usuário B demonstrou interesse no encontro do Usuário A.');
+  });
+  document.getElementById('btnTesteAceitar')?.addEventListener('click',()=>{
+    if(!interest){ setStatus('⚠️ Primeiro faça o Usuário B demonstrar interesse.'); return; }
+    match=true;
+    setStatus('🤝 Match criado com sucesso entre Usuário A e Usuário B.');
+  });
+  document.getElementById('btnTesteChat')?.addEventListener('click',()=>{
+    if(!match){ setStatus('⚠️ Primeiro crie o Match.'); return; }
+    setStatus('💬 Mensagem enviada no chat privado.');
+  });
+})();
+</script>
+
+
+
+
+
+
+<div id="qaPanel" style="position:fixed;left:10px;right:10px;bottom:10px;z-index:11000;background:#fff;border:2px solid #111827;border-radius:18px;padding:14px;box-shadow:0 12px 35px rgba(0,0,0,.25);max-width:560px;margin:auto;color:#111827">
+  <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+    <strong>🧪 Central de teste</strong>
+    <button id="qaClose" type="button">Fechar</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+    <button id="qaInterest" type="button">❤️ Simular interesse</button>
+    <button id="qaMatch" type="button">🤝 Simular match</button>
+    <button id="qaOpenChat" type="button">💬 Abrir chat</button>
+  </div>
+  <div id="qaStatus" style="font-size:14px;margin-bottom:8px">Etapa 1: simule um interesse.</div>
+  <div id="qaChat" style="display:none;border-top:1px solid #e5e7eb;padding-top:10px">
+    <div id="qaLog" style="min-height:40px;max-height:120px;overflow:auto;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;align-items:center;width:100%">
+      <input id="qaInput" type="text" inputmode="text" autocomplete="off" placeholder="Escreva uma mensagem..." aria-label="Mensagem de teste"
+        style="display:block;flex:1 1 auto;width:auto;min-width:0;box-sizing:border-box;color:#111827;background:#ffffff;border:2px solid #6b7280;border-radius:12px;padding:13px 12px;font-size:16px;line-height:1.2;opacity:1;visibility:visible">
+      <button id="qaSend" type="button" style="flex:0 0 auto;width:auto;padding:13px 15px">Enviar</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let interested=false, matched=false;
+  $("qaClose").addEventListener("click",()=>{$("qaPanel").style.display="none";});
+  $("qaInterest").addEventListener("click",()=>{
+    interested=true;
+    $("qaStatus").textContent="❤️ Interesse recebido. Agora o criador pode aceitar.";
+  });
+  $("qaMatch").addEventListener("click",()=>{
+    if(!interested){$("qaStatus").textContent="⚠️ Primeiro simule um interesse.";return;}
+    matched=true;
+    $("qaStatus").textContent="🤝 Match criado. Agora a conversa está disponível.";
+  });
+  $("qaOpenChat").addEventListener("click",()=>{
+    if(!matched){$("qaStatus").textContent="⚠️ Primeiro crie o match.";return;}
+    $("qaChat").style.display="block";
+    const input=$("qaInput");
+    input.value="";
+    input.focus();
+  });
+  function send(){
+    const input=$("qaInput");
+    const value=input.value.trim();
+    if(!value){input.focus();return;}
+    const msg=document.createElement("div");
+    msg.textContent="Você: "+value;
+    msg.style.cssText="padding:8px 10px;margin:5px 0;background:#f3f4f6;border-radius:10px;color:#111827;word-break:break-word";
+    $("qaLog").appendChild(msg);
+    input.value="";
+    input.focus();
+  }
+  $("qaSend").addEventListener("click",send);
+  $("qaInput").addEventListener("keydown",(e)=>{
+    if(e.key==="Enter"){e.preventDefault();send();}
+  });
+})();
+</script>
+
+
+
+
+</body>
+</html>
